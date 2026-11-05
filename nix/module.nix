@@ -4,6 +4,10 @@
 #   hugginghub.nixosModules.default
 #   hugginghub.nixosModules.hugginghub
 #
+# This is the deploy path for the aarch64 GB10 Sparks (next to
+# spark-nixos.nixosModules.default) and for other NixOS hosts.
+# Host-specific configuration.nix files stay in the host flake.
+#
 # This option set is the stable interface other repositories should enable.
 # Every setting maps to the server's existing HH_* environment variables.
 # Local disk is the default; S3 is optional and unused unless storage = "s3".

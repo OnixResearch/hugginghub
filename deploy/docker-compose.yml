@@ -1,0 +1,26 @@
+# OPTIONAL FALLBACK. Not the Spark path.
+# On NixOS, enable services.hugginghub instead of running this file.
+# Start with deploy/up.sh only on a host that is not using the module.
+# restart: unless-stopped keeps the container up after logout via dockerd.
+# A systemd --user unit stops at logout unless lingering was enabled.
+
+name: hugginghub
+
+services:
+  hugginghub:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: hugginghub:local
+    restart: unless-stopped
+    user: "${HH_UID:?set HH_UID}:${HH_GID:?set HH_GID}"
+    environment:
+      HH_DATA: /data
+      HH_BIND: "0.0.0.0:8080"
+      HH_GIT: /usr/bin/git
+      HH_OPEN_SIGNUP: ${HH_OPEN_SIGNUP:-0}
+      HOME: /data
+    ports:
+      - "${HH_PUBLISH_ADDR:-0.0.0.0}:${HH_PORT:-8080}:8080"
+    volumes:
+      - ${HH_DATA_DIR:?set HH_DATA_DIR}:/data

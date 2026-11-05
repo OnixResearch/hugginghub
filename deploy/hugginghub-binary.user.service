@@ -1,0 +1,35 @@
+# OPTIONAL FALLBACK. Not the Spark path.
+# NixOS hosts run the binary from services.hugginghub, not from this unit.
+# systemd --user unit for a binary installed at ~/.local/bin/hugginghub.
+# Same linger caveat as deploy/hugginghub.user.service.
+#
+#   mkdir -p ~/.config/systemd/user ~/.local/share/hugginghub
+#   cp deploy/hugginghub-binary.user.service ~/.config/systemd/user/hugginghub.service
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now hugginghub.service
+#
+# HH_BIND is host:port. Override it from ~/.config/hugginghub.env.
+# The host needs a `git` binary (HH_GIT). git-lfs is only needed on clients
+# and on the machine that seeds.
+
+[Unit]
+Description=HuggingHub LAN mirror (user binary)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.local/share/hugginghub
+Environment=HH_DATA=%h/.local/share/hugginghub
+Environment=HH_BIND=0.0.0.0:8080
+Environment=HH_OPEN_SIGNUP=0
+Environment=HH_GIT=/usr/bin/git
+Environment=RUST_LOG=info
+EnvironmentFile=-%h/.config/hugginghub.env
+ExecStartPre=/usr/bin/mkdir -p %h/.local/share/hugginghub
+ExecStart=%h/.local/bin/hugginghub
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
