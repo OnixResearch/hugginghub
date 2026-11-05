@@ -1,0 +1,37 @@
+# OPTIONAL FALLBACK. Not the Spark path.
+# NixOS hosts enable services.hugginghub (a system unit). This user unit is
+# only for a non-NixOS login session that already runs Docker.
+#
+# Install (checkout is ~/hugginghub):
+#   mkdir -p ~/.config/systemd/user
+#   cp deploy/hugginghub.user.service ~/.config/systemd/user/hugginghub.service
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now hugginghub.service
+#
+# systemctl --user stops this when the login session ends unless lingering
+# is enabled. `loginctl enable-linger` needs sudo once.
+# deploy/up.sh (detached compose, restart: unless-stopped) does not need linger.
+# Optional overrides: ~/.config/hugginghub.env (HH_PORT, HH_PUBLISH_ADDR).
+# Do not put tokens in that file.
+
+[Unit]
+Description=HuggingHub LAN mirror (user, docker compose)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/hugginghub
+Environment=HH_DATA_DIR=%h/.local/share/hugginghub
+Environment=HH_PORT=8080
+Environment=HH_PUBLISH_ADDR=0.0.0.0
+Environment=HH_OPEN_SIGNUP=0
+EnvironmentFile=-%h/.config/hugginghub.env
+ExecStartPre=/usr/bin/mkdir -p %h/.local/share/hugginghub
+ExecStart=/bin/sh -c 'export HH_UID=$$(id -u) HH_GID=$$(id -g); exec docker compose -f %h/hugginghub/deploy/docker-compose.yml up --abort-on-container-exit'
+ExecStop=/bin/sh -c 'export HH_UID=$$(id -u) HH_GID=$$(id -g); exec docker compose -f %h/hugginghub/deploy/docker-compose.yml stop'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

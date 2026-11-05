@@ -1,3 +1,7 @@
+# System-wide unit from upstream. It runs as root, listens on port 80, and
+# stores data in /var/lib. NixOS hosts, including the GB10 Sparks, should use
+# the NixOS module instead (see the README). deploy/docker-compose.yml is an
+# optional fallback only.
 [Unit]
 Description=HuggingHub - self-hosted Hugging Face Hub compatible server
 After=network-online.target
